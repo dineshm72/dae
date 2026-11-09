@@ -2332,6 +2332,7 @@ export function daeInitActions() {
   Hooks.on("updateItem", (item, data, options, userId) => updateStatusEffects(item, options, userId));
   Hooks.on("deleteItem", (item, options, userId) => updateStatusEffects(item, options, userId));
   Hooks.on("createItem", (item, options, userId) => updateStatusEffects(item, options, userId));
+  Hooks.on("createActor", (actor, options, userId) => updateStatusEffects(actor, options, userId));
 
   Hooks.on("deleteActiveEffect", deleteActiveEffectHook);
   //  Hooks.on("preDeleteActiveEffect", preDeleteActiveEffectHook); - moved wrapper to avoid race conditions
@@ -2368,6 +2369,7 @@ export function daeInitActions() {
   actionQueue = new foundry.utils.Semaphore();
 }
 
+// Not compendium actors: their conditions would race importers replacing their effects, and a world copy gets its own on createActor
 function updateStatusEffects(doc, options, userId) {
   if (!dependentConditions) return;
   if (userId !== game.user?.id) return;
@@ -2378,7 +2380,7 @@ function updateStatusEffects(doc, options, userId) {
   if (actor instanceof Item) {
     actor = actor.parent;
   }
-  if (!(actor instanceof Actor)) return;
+  if (!(actor instanceof Actor) || actor.inCompendium) return;
 
   if (!reconciliationPending.has(actor.uuid)) {
     reconciliationPending.add(actor.uuid);
@@ -2408,7 +2410,7 @@ function queueStatusesReconciliation(effect: ActiveEffect.Implementation, userId
   if (!hasStatuses && !hasCIChanges) return;
 
   const actor = effect.parent instanceof Actor ? effect.parent : (effect.parent as Item)?.parent;
-  if (!(actor instanceof Actor)) return;
+  if (!(actor instanceof Actor) || actor.inCompendium) return;
 
   if (!reconciliationPending.has(actor.uuid)) {
     reconciliationPending.add(actor.uuid);
