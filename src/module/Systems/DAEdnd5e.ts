@@ -1391,6 +1391,9 @@ const MOVED_BONUS_PATHS: [string, string][] = [
   ["bonuses.abilities.skill", "rolls.ability.skill.bonus"]
 ];
 
+// Warned once per path: `once` dedupes per stack, and every reader during preparation has its own.
+const warnedMovedBonusPaths = new Set<string>();
+
 function movedBonusAliases(system: AnyObject) {
   if (!system?.bonuses || typeof system.bonuses !== "object" || !system.rolls) return;
   for (const [original, updated] of MOVED_BONUS_PATHS) {
@@ -1404,9 +1407,12 @@ function movedBonusAliases(system: AnyObject) {
     Object.defineProperty(container, key, {
       configurable: true,
       get: () => {
-        foundry.utils.logCompatibilityWarning(`${original} has moved to "${updated}".`, {
-          since: "DnD5e 6.0", until: "DnD5e 7.0", once: true
-        });
+        if (!warnedMovedBonusPaths.has(original)) {
+          warnedMovedBonusPaths.add(original);
+          foundry.utils.logCompatibilityWarning(`${original} has moved to "${updated}".`, {
+            since: "DnD5e 6.0", until: "DnD5e 7.0"
+          });
+        }
         return foundry.utils.getProperty(system, updated) ?? "";
       }
     });

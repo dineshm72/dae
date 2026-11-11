@@ -1,3 +1,6 @@
+### 14.6.9
+* Changed: a module reading a bonus path dnd5e 6 moved (`bonuses.rsak.attack` and the like) gets one deprecation warning per path, not one for every place it reads it.
+
 ### 14.6.8
 * Fixed: with Dependent Conditions on, updating an existing monster or character in ddb-importer could stop with "ActiveEffect dnd5einvisible00 does not exist": DAE adds and removes the conditions within the change that causes them, so they are in place when it completes. An actor created with items carrying a status (imported, dragged from a compendium) now gets their conditions.
 * Fixed: a condition immunity set on the actor itself (not by an effect) didn't remove a condition DAE added; it does now.
